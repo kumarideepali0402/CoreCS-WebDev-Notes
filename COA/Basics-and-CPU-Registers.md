@@ -1,10 +1,5 @@
 # COA 01 — Basics of COA & CPU Registers
-### GATE 2026 Crash Course | CS & IT
 
-> **Source:** [YouTube — GATE Exam Channel](https://www.youtube.com/watch?v=js8aA0OAqDk&list=PL3eEXnCBViH87OmcXOZYS40CqjWYeT1S3&index=11)  
-> **Subject:** Computer Organization and Architecture (COA)
-
----
 
 ## Table of Contents
 
@@ -478,4 +473,4 @@ Total Memory = 65,536 × 1 byte = 64 KB
 
 ---
 
-*Notes based on: COA 01 — Basics of COA & CPU Registers | GATE 2026 Crash Course*
+
