@@ -13,7 +13,7 @@
 8. [Instruction Cycle (Fetch–Decode–Execute)](#8-instruction-cycle-fetchdecodeexecute)
 9. [Bus Organization](#9-bus-organization)
 10. [Memory Organization Basics](#10-memory-organization-basics)
-11. [GATE PYQ Tips & Key Points](#11-gate-pyq-tips--key-points)
+11. [FAANG / MAANG Interview Questions](#11-faang--maang-interview-questions)
 
 ---
 
@@ -415,40 +415,73 @@ Total Memory = 65,536 × 1 byte = 64 KB
 
 ---
 
-## 11. GATE PYQ Tips & Key Points
+## 11. FAANG / MAANG Interview Questions
 
-### Must-Remember Facts:
-
-1. **PC holds address of NEXT instruction** (not current).
-
-2. **IR holds the CURRENT instruction** being decoded/executed.
-
-3. **MAR is connected to Address Bus** → holds address.  
-   **MDR is connected to Data Bus** → holds data.
-
-4. **Register speed order:**  
-   `Registers > Cache > RAM > Secondary Storage`
-
-5. **Von Neumann bottleneck** = single shared bus for data and instructions.
-
-6. **Harvard architecture** = separate instruction and data memory → used in microcontrollers.
-
-7. **Stack grows downward** in most architectures:  
-   - PUSH: SP decremented  
-   - POP: SP incremented
-
-8. **Overflow flag (V)** is set for **signed** arithmetic overflow.  
-   **Carry flag (C)** is set for **unsigned** arithmetic overflow.
-
-9. **Address bus is unidirectional** (CPU → Memory).  
-   **Data bus is bidirectional** (CPU ↔ Memory).
-
-10. **If address bus = n bits:**  
-    Max addressable memory = **2ⁿ** locations × word size
+> Questions commonly asked at Google, Amazon, Microsoft, Meta, Apple, Flipkart and other top tech companies.
 
 ---
 
-### Quick Revision — Register Functions (One-liners):
+### Conceptual / Definition Level
+
+**Q1. What is the Von Neumann bottleneck? How do modern CPUs address it?**
+> The shared bus between CPU and memory limits throughput — only one access (instruction fetch OR data read/write) at a time. Modern CPUs solve it with **multi-level caches**, **prefetching**, **out-of-order execution**, and **wide memory buses**.
+
+**Q2. Why do we need a memory hierarchy? Why can't everything be in registers?**
+> Registers are fast but extremely expensive and small. The hierarchy (Registers → Cache → RAM → Disk) balances cost vs speed — frequently used data stays in fast memory, the rest in slower cheap memory.
+
+**Q3. What is the difference between MAR and MDR?**
+> MAR (Memory Address Register) holds the **address** of the memory location to access — connected to the address bus. MDR (Memory Data Register) holds the actual **data** being read from or written to memory — connected to the data bus.
+
+**Q4. What does the Program Counter hold? What happens to it after an instruction is fetched?**
+> PC holds the address of the **next instruction** to execute. After a fetch, PC is automatically incremented to point to the following instruction. On a branch/jump, PC is explicitly set to the target address.
+
+**Q5. What is the difference between RISC and CISC? Which approach do modern processors use?**
+> RISC has simple fixed-length instructions, many registers, and relies on the compiler. CISC has complex variable-length instructions and fewer registers. Modern processors (x86) use a **CISC ISA externally but RISC-like micro-ops internally**.
+
+**Q6. What is the difference between the Carry flag and the Overflow flag?**
+> **Carry flag** — set on unsigned arithmetic overflow (carry out of the MSB). **Overflow flag** — set on signed arithmetic overflow (result doesn't fit in signed range). For example: 127 + 1 in 8-bit signed sets overflow (not carry); 255 + 1 in 8-bit unsigned sets carry (not overflow).
+
+**Q7. Why does the stack grow downward in memory?**
+> It's a hardware convention — the stack starts at a high address and grows toward lower addresses, while the heap grows upward from low addresses. This allows both to grow toward each other without a fixed partition, maximizing memory utilization.
+
+**Q8. What is the instruction cycle? Walk me through fetch-decode-execute.**
+> **Fetch:** PC → MAR, Memory[MAR] → MDR → IR, PC++. **Decode:** Control unit reads opcode from IR. **Execute:** ALU performs the operation. For memory ops, an additional memory access step occurs between decode and execute.
+
+---
+
+### Memory & Cache (Frequently Asked at Google / AMD / Intel roles)
+
+**Q9. What are the three types of cache misses?**
+> **Cold miss (Compulsory)** — first access to a block, unavoidable. **Capacity miss** — cache too small to hold all needed blocks. **Conflict miss** — multiple blocks map to the same cache set (direct-mapped caches).
+
+**Q10. What is the difference between direct-mapped, set-associative, and fully associative cache?**
+> **Direct-mapped:** each memory block maps to exactly one cache line — fast but high conflict misses. **Fully associative:** a block can go anywhere — fewest misses but slowest lookup. **Set-associative (N-way):** compromise — blocks map to a set of N lines.
+
+**Q11. What is cache coherence? How is it maintained in multi-core processors?**
+> When multiple cores have their own caches, the same memory location can have different cached values — cache coherence ensures all cores see a consistent view. Protocols like **MESI** (Modified, Exclusive, Shared, Invalid) track cache line states and broadcast invalidations on writes.
+
+**Q12. What is a TLB? What happens on a TLB miss?**
+> TLB (Translation Lookaside Buffer) is a cache for page table entries — maps virtual addresses to physical addresses without walking the full page table. On a miss, hardware (or software on some architectures) **walks the page table**, loads the mapping into TLB, then retries the access.
+
+---
+
+### Pipeline & Advanced (Asked at hardware/systems roles)
+
+**Q13. What are pipeline hazards? How is a data hazard resolved?**
+> **Structural hazard** — two instructions need the same hardware unit. **Data hazard (RAW/WAR/WAW)** — instruction depends on result of a previous one not yet written back. **Control hazard** — branch target unknown. Data hazards are resolved via **forwarding (bypassing)**, **pipeline stalls (bubbles)**, or **out-of-order execution**.
+
+**Q14. Why is context switching expensive at the hardware level?**
+> Context switching saves/restores all CPU registers and PCB state — but also **flushes the TLB** (since virtual address mappings change) and **pollutes the CPU caches** (new process accesses different memory). These cache and TLB cold-start effects are the dominant cost, not the register save/restore itself.
+
+**Q15. What is register renaming and why is it used?**
+> Register renaming maps architectural registers to a larger set of physical registers, eliminating **WAR (write-after-read) and WAW (write-after-write) false dependencies**. This allows more instructions to execute out of order in superscalar processors.
+
+**Q16. What is out-of-order execution? What problem does it solve?**
+> The CPU executes instructions in a different order than the program specifies, based on data availability rather than program order. It solves the problem of CPU stalls waiting for slow memory accesses — other independent instructions can execute in the meantime.
+
+---
+
+### Register Quick Reference:
 
 | Register | One-liner |
 |---|---|
@@ -459,17 +492,6 @@ Total Memory = 65,536 × 1 byte = 64 KB
 | ACC | "Where does ALU put its answer?" |
 | SP | "Where is the top of the stack?" |
 | PSW | "What happened after the last operation?" |
-
----
-
-### Frequently Asked GATE Question Types:
-
-- What does PC contain after fetching instruction at address X?
-- How many addressable locations with a 20-bit address bus?
-- Identify which register is connected to the address/data bus
-- Difference between MAR and MDR
-- Identify flags set after an arithmetic operation
-- RTL notation — trace the micro-operations for a given instruction
 
 ---
 

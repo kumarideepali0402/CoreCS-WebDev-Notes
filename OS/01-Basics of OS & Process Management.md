@@ -17,7 +17,7 @@
 9. [Context Switching](#9-context-switching)
 10. [Process Scheduling & Schedulers](#10-process-scheduling--schedulers)
 11. [CPU Scheduling Algorithms](#11-cpu-scheduling-algorithms)
-12. [GATE PYQ Tips & Key Points](#12-gate-pyq-tips--key-points)
+12. [FAANG / MAANG Interview Questions](#12-faang--maang-interview-questions)
 
 ---
 
@@ -445,58 +445,69 @@ Gantt: P1(0-2) P2(2-4) P3(4-6) P1(6-8) P2(8-9) P3(9-11) P1(11-12) P3(12-14) P3(1
 
 ---
 
-## 12. GATE PYQ Tips & Key Points
+## 12. FAANG / MAANG Interview Questions
 
-### Must-Remember Facts:
-
-1. **Process = Program in Execution.** A program is passive; a process is active.
-
-2. **PCB stores everything** about a process: PID, state, PC, registers, memory info, I/O info.
-
-3. **Context Switch is pure overhead** — no useful work done during the switch.
-
-4. **Process states:** New → Ready → Running → Waiting → Terminated  
-   - Waiting → Running is **NOT** a direct transition (must go through Ready).
-
-5. **Short-term scheduler** (CPU scheduler) runs most frequently — every few milliseconds.  
-   **Long-term scheduler** runs infrequently — controls degree of multiprogramming.
-
-6. **SJF is optimal** — gives minimum average waiting time among non-preemptive algorithms.
-
-7. **Round Robin** gives best **response time** / **interactive performance**.
-
-8. **Aging** solves starvation in Priority Scheduling.
-
-9. **FCFS Convoy Effect** — one long process blocks all short processes behind it.
-
-10. **Stack grows downward**, Heap grows upward. They grow toward each other.
-
-11. **Multiprogramming** — switches on I/O wait only (non-preemptive in nature).  
-    **Multitasking** — switches on timer quantum expiry too (preemptive).
+> Questions commonly asked at Google, Amazon, Microsoft, Meta, Apple, Flipkart and other top tech companies.
 
 ---
 
-### Quick Revision — Key Formulas:
+### Process & Thread Fundamentals
 
-| Formula | Expression |
-|---|---|
-| Turnaround Time | `Completion Time − Arrival Time` |
-| Waiting Time | `Turnaround Time − Burst Time` |
-| Response Time | `First CPU Time − Arrival Time` |
-| CPU Utilization | `CPU busy time / Total time × 100%` |
-| Throughput | `No. of processes / Total time` |
+**Q1. What is the difference between a process and a thread? When would you use threads over processes?**
+> A **process** has its own memory space, file descriptors, and resources — fully isolated. A **thread** shares the address space of its parent process — faster to create/switch but needs synchronization. Use threads for parallelism within one task (e.g., web server handling requests). Use processes for isolation (e.g., browser tabs, microservices).
+
+**Q2. What is stored in a PCB (Process Control Block)?**
+> PID, process state, program counter, CPU registers, memory management info (page tables, base/limit), I/O status (open files, devices), CPU scheduling info (priority, queue pointers), and accounting info (CPU time used).
+
+**Q3. Why is process creation more expensive than thread creation?**
+> `fork()` duplicates the entire address space (page tables, file descriptors, kernel structures). `pthread_create()` only creates a new thread control block and stack — it shares everything else with the parent. On modern Linux, `fork()` uses **copy-on-write** to defer the actual copying until a write occurs.
+
+**Q4. What happens when you call fork()? What is copy-on-write?**
+> `fork()` creates an identical child process. The OS marks all memory pages as read-only and **shared** between parent and child. When either writes to a page, the OS creates a private copy — this is **copy-on-write (COW)**. It avoids copying gigabytes of memory for a process that immediately calls `exec()`.
+
+**Q5. What is a zombie process? How do you prevent it?**
+> A zombie process has finished execution but its entry remains in the process table because the parent hasn't called `wait()` to read its exit status. Prevent it by: calling `wait()` / `waitpid()` in the parent, using signal handlers for `SIGCHLD`, or double-forking.
+
+**Q6. What is an orphan process? Who adopts it?**
+> An orphan process's parent has terminated. The OS automatically re-parents it to **init (PID 1)** or **systemd**, which periodically calls `wait()` to clean up orphans.
 
 ---
 
-### Frequently Asked GATE Question Types:
+### Context Switching & Memory
 
-- Calculate TAT, WT, response time for given scheduling algorithm
-- Draw Gantt chart for FCFS, SJF, SRTF, RR, Priority
-- Identify which scheduling algorithm is being described
-- Which algorithm gives minimum average waiting time?
-- What happens to RR when quantum → ∞?
-- Which algorithm suffers from convoy effect / starvation?
-- Identify PCB fields or what gets saved during context switch
-- Process state transition questions (can a process go directly from Waiting → Running?)
+**Q7. Why is context switching expensive? What exactly happens at the hardware level?**
+> A context switch involves: saving all CPU registers + PC + SP into the PCB, loading the next process's PCB, **flushing the TLB** (virtual→physical mappings become invalid), and cold-starting the CPU caches (new process accesses different memory). Cache and TLB warm-up cost dominates — a single context switch can incur thousands of cache misses.
+
+**Q8. What are the segments of a process in memory (Text, Data, Heap, Stack)?**
+> **Text** — compiled machine code (read-only, shared between `fork()` children). **Data** — initialized global/static variables. **Heap** — dynamic allocations (`malloc/new`), grows upward. **Stack** — local variables, function call frames, return addresses, grows downward. Stack overflow happens when Stack and Heap collide.
+
+---
+
+### IPC & Communication
+
+**Q9. What are the IPC mechanisms? When would you choose shared memory over message passing?**
+> **Shared memory** — fastest (no kernel involvement after setup), but requires explicit synchronization. **Pipes / FIFOs** — simple byte streams between related processes. **Message queues** — structured messages, OS-managed. **Sockets** — works across machines. **Signals** — lightweight notifications. Use shared memory for high-throughput data sharing; use message passing for loose coupling or across machines.
+
+**Q10. What is the difference between user-level threads and kernel-level threads?**
+> **User-level threads** — managed by a runtime library, kernel sees only one process; fast context switch but one blocking syscall blocks all threads. **Kernel-level threads** — OS-managed; a blocking syscall in one thread doesn't block others but context switching is heavier. Most modern systems use **1:1 mapping** (one kernel thread per user thread).
+
+---
+
+### Schedulers & OS Internals
+
+**Q11. Can a process go directly from Waiting to Running? Why or why not?**
+> No. When an I/O event completes, the process moves from **Waiting → Ready** (added to ready queue). The scheduler then picks it from the ready queue to move it to **Running**. This design keeps the scheduler the single decision point for CPU allocation.
+
+**Q12. What is the difference between the long-term, short-term, and medium-term scheduler?**
+> **Long-term (Job scheduler):** decides which processes from disk enter memory — controls degree of multiprogramming (runs rarely). **Short-term (CPU scheduler):** decides which ready process gets the CPU — runs every few milliseconds. **Medium-term (Swapper):** moves processes in/out of memory to manage load.
+
+**Q13. What is process affinity? Why is it useful?**
+> Process affinity binds a process/thread to specific CPU cores. **Soft affinity** prefers the same core but allows migration. **Hard affinity** strictly pins it. Benefits: better cache reuse (hot data stays in L1/L2), avoids TLB flushes from migration. Trade-off: reduces load balancing flexibility.
+
+**Q14. What is the thundering herd problem?**
+> When many processes/threads wait on the same event (e.g., `accept()` on a socket), and the event fires, **all** of them wake up — but only one can handle it. The rest spin, context switch, and go back to sleep, wasting CPU. Modern Linux uses `EPOLLEXCLUSIVE` to wake only one waiter.
+
+**Q15. What is a system call? How does it differ from a regular function call?**
+> A regular function call stays in user space. A system call switches from **user mode to kernel mode** (privilege level change) via a software interrupt / trap instruction. The CPU saves user-space state, jumps to the kernel handler, executes privileged code, then returns to user mode. System calls are orders of magnitude more expensive than function calls.
 
 ---
